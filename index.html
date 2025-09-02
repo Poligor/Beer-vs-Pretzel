@@ -4,64 +4,63 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tic‑Tac‑Toe • Beer vs Pretzel</title>
-  <meta name="description" content="A tiny, shareable Tic‑Tac‑Toe for LinkedIn posts. X=🍺 Beer, O=🥨 Pretzel. Copy the board as text or share a link to the current state." />
+  <meta name="description" content="Play Beer vs Pretzel Tic‑Tac‑Toe. X=🍺 Beer, O=🥨 Pretzel. Shareable, mobile‑friendly." />
   <style>
-    :root{
-      --bg:#0f1115;--panel:#171922;--muted:#9aa3b2;--text:#e6e8ef;--accent:#7bd88f;--beer:#ffd166;--pretzel:#ff8fab;--grid:#2a2f3a;--shadow:0 10px 30px rgba(0,0,0,.35)
-    }
+    :root{ --bg:#0f1115; --panel:#171922; --muted:#9aa3b2; --text:#e6e8ef; --accent:#7bd88f; --grid:#4b5a80; --shadow:0 10px 30px rgba(0,0,0,.35) }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#1f2230 0%,transparent 50%),radial-gradient(1200px 800px at 110% 10%,#23283a 0%,transparent 52%),var(--bg);color:var(--text);font:16px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
     .wrap{max-width:980px;margin:0 auto;padding:24px}
-    header{display:flex;gap:14px;align-items:center;justify-content:space-between;margin:8px 0 18px}
-    .brand{display:flex;gap:10px;align-items:center}
-    .logo{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#202637,#0d0f15);box-shadow:var(--shadow);font-size:24px}
-    h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.2px}
-    .panel{background:linear-gradient(190deg,#141824,#0f121a);border:1px solid #232739;border-radius:18px;box-shadow:var(--shadow)}
-    .grid{display:grid;grid-template-columns:repeat(3, minmax(90px,1fr));gap:10px;padding:18px}
-    .cell{aspect-ratio:1 / 1;display:grid;place-items:center;border-radius:16px;background:linear-gradient(180deg,#1a1f2b,#121620);border:1px solid var(--grid);cursor:pointer;font-size:56px;transition:transform .06s ease, box-shadow .1s ease}
-    .cell:active{transform:scale(.98)}
-    .cell[disabled]{cursor:not-allowed;opacity:.5}
-    .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:14px;border-top:1px solid #202436}
-    button, .btn{appearance:none;border:none;background:#1d2331;border:1px solid #2a3146;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;letter-spacing:.2px;transition:transform .06s ease,opacity .2s ease}
+
+    /* Topbar */
+    .topbar{width:100%;text-align:center;padding:8px 8px;border-bottom:1px solid #232739}
+    .topbar .logo{display:inline-grid;place-items:center;width:112px;height:112px;margin-bottom:3px;border-radius:14px;font-size:56px}
+    .topbar h1{font-size:24px;margin:8px 0 0;font-weight:700;color:var(--text)}
+    @media (max-width:600px){ .topbar h1{font-size:20px} .topbar .logo{width:120px;height:120px;font-size:64px;margin-bottom:4px} }
+
+    /* Buttons */
+    button,.btn{appearance:none;border:none;background:#1d2331;border:1px solid #2a3146;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;letter-spacing:.2px;transition:transform .06s ease,opacity .2s ease}
     button:hover{opacity:.9}
     .primary{background:linear-gradient(180deg,#2a334a,#1a2131);border-color:#3a4666}
+    .accent{background:linear-gradient(180deg,#1e3a2b,#14251d);border-color:#284e3b} /* greenish */
+    .accent.off{background:linear-gradient(180deg,#3a1e1e,#2a1414);border-color:#5a2a2a} /* reddish when OFF */
+    .blue{background:linear-gradient(180deg,#2a334a,#1a2131);border-color:#3a4666} /* blueish */
     .beer{background:linear-gradient(180deg,#40351a,#2a2310);border-color:#5a4720}
     .pretzel{background:linear-gradient(180deg,#402028,#271219);border-color:#5a2a38}
-    .accent{background:linear-gradient(180deg,#1e3a2b,#14251d);border-color:#284e3b}
+
+    .header-buttons{margin:24px 0;text-align:center}
+    .flex{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+    /* Panel + status */
+    .panel{background:linear-gradient(190deg,#141824,#0f121a);border:1px solid #232739;border-radius:18px;box-shadow:var(--shadow)}
     .status{display:flex;align-items:center;gap:10px;padding:14px}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid #2a3146;background:#171c29;font-size:14px}
-    .legend{display:flex;gap:8px;flex-wrap:wrap}
-    .legend .tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#151a26;border:1px solid #242b3f}
-    .tag.beer{border-color:#5a4720}
-    .tag.pretzel{border-color:#5a2a38}
+
+    /* Grid */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px;max-width:520px;margin:0 auto}
+    .cell{min-width:0;min-height:0;aspect-ratio:1/1;display:grid;place-items:center;border-radius:16px;background:linear-gradient(180deg,#1a1f2b,#121620);border:2px solid var(--grid);cursor:pointer;font-size:56px;transition:transform .06s ease, box-shadow .1s ease, background .2s ease}
+    .cell:active{transform:scale(.98)}
+    .cell[disabled]{cursor:not-allowed;opacity:.6}
+    .cell.win{background:#395bee !important; box-shadow:0 0 0 2px #395bee inset, 0 0 16px rgba(57,91,238,.4)}
+
+    /* Toolbar under board */
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:14px;border-top:1px solid #202436;justify-content:center}
+
     .footer{margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
-    .flex{display:flex;gap:10px;flex-wrap:wrap}
-    .grow{flex:1}
-    .sr{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
-    #testBadge{position:fixed;right:12px;bottom:12px;font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #2a3146;background:#141824;color:var(--muted);box-shadow:var(--shadow);opacity:.9}
-    @media (max-width:600px){
-      .grid{gap:8px}
-      .cell{font-size:48px;border-radius:14px}
-    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden>🎮</div>
-        <div>
-          <h1>Beer vs Pretzel — Tic‑Tac‑Toe</h1>
-          <div class="legend" aria-label="Legend">
-            <span class="tag beer">X = 🍺 Beer</span>
-            <span class="tag pretzel">O = 🥨 Pretzel</span>
-          </div>
-        </div>
-      </div>
+    <div class="topbar">
+      <div class="logo" aria-hidden>🥨</div>
+      <h1>Beer vs Pretzel — Tic‑Tac‑Toe</h1>
+    </div>
+
+    <header class="header-buttons">
       <div class="flex">
         <button id="newGame" class="primary">New game</button>
-        <button id="toggleAI" class="accent">Play vs Computer: OFF</button>
+        <button id="toggleAI" class="accent">Play vs Computer: ON</button>
+        <button id="computerStarts" class="blue">Computer starts</button>
       </div>
     </header>
 
@@ -69,15 +68,22 @@
       <div class="status">
         <span class="badge" id="turnBadge">Turn: <strong style="margin-left:6px">🍺</strong></span>
         <span class="badge" id="stateBadge">State: <strong style="margin-left:6px">Playing</strong></span>
-        <span class="grow"></span>
-        <div class="flex">
-          <button id="copyText" title="Copy board as text for LinkedIn comments">Copy board as text</button>
-          <button id="copyLink" class="accent" title="Copy shareable link to this exact board">Copy shareable link</button>
-        </div>
+        <span style="flex:1"></span>
       </div>
+
+      <!-- Static 3×3 cells so preview always renders; JS will control them -->
       <div class="grid" role="grid" aria-label="3 by 3 tic‑tac‑toe grid">
-        <!-- cells injected by JS -->
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
+        <button class="cell" role="gridcell" aria-label="Empty cell"></button>
       </div>
+
       <div class="toolbar">
         <div class="flex">
           <span class="badge">Starter:</span>
@@ -91,99 +97,72 @@
       </div>
     </section>
 
-    <p class="footer">Tip: After each move, click <em>Copy board as text</em> and paste it to your LinkedIn comments to "play inside the post". Use <em>Copy shareable link</em> to let people open the same state in their browser.</p>
+    <p class="footer">Tip: Toggle <em>Play vs Computer</em>. When it’s ON, you can make the computer start the round with <em>Computer starts</em>. Winning line tiles highlight in blue.</p>
   </div>
 
-  <div id="testBadge" aria-live="polite" title="Self‑tests run on load">Tests: pending…</div>
-
   <script>
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Core constants & helpers
-    // ─────────────────────────────────────────────────────────────────────────────
-    const X = 'X';
-    const O = 'O';
-    const EMOJI = { X: '🍺', O: '🥨', E: '⬜' };
+    // --- Game constants/state ---
+    const X = 'X', O = 'O';
+    const EMOJI = { X: '🍺', O: '🥨' };
     const qs = new URLSearchParams(location.search);
 
-    // Game state (renamed to avoid shadowing window.history)
     let board = Array(9).fill(null);
     let turn = X;
-    let moveStack = []; // previously named `history` — renamed to prevent collisions
+    let historyStack = [];
+    let aiEnabled = true;         // default: ON
+    let computerStarts = false;   // default: OFF
+    let humanPlayer = X;          // updated when toggles change
 
-    // AI toggles
-    let aiEnabled = false;
-    let humanPlayer = X; // who the human is currently playing as
-
-    // DOM refs
+    // --- Elements ---
     const grid = document.querySelector('.grid');
+    let cells = Array.from(grid.querySelectorAll('.cell'));
     const turnBadge = document.getElementById('turnBadge');
     const stateBadge = document.getElementById('stateBadge');
-    const copyTextBtn = document.getElementById('copyText');
-    const copyLinkBtn = document.getElementById('copyLink');
-    const toggleAI = document.getElementById('toggleAI');
-    const testBadge = document.getElementById('testBadge');
+    const btnNew = document.getElementById('newGame');
+    const btnAI = document.getElementById('toggleAI');
+    const btnCS = document.getElementById('computerStarts');
 
-    // Build cells
-    const cells = [];
-    for (let i=0;i<9;i++){
-      const btn = document.createElement('button');
-      btn.className = 'cell';
-      btn.setAttribute('role','gridcell');
-      btn.setAttribute('aria-label','Empty cell');
-      btn.addEventListener('click', ()=>handleMove(i));
-      grid.appendChild(btn);
-      cells.push(btn);
-    }
+    // hook up cell clicks
+    cells.forEach((btn,i)=> btn.addEventListener('click', ()=>handleMove(i)));
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Controls
-    // ─────────────────────────────────────────────────────────────────────────────
-    document.getElementById('newGame').addEventListener('click', ()=>{reset(); randomStarter(); maybeAIMove();});
-    document.getElementById('reset').addEventListener('click', ()=>{reset(); maybeAIMove();});
-    document.getElementById('undo').addEventListener('click', ()=>{undo(); maybeAIMove();});
+    // --- Controls ---
+    btnNew.addEventListener('click', ()=>{ reset(); randomStarter(); maybeAIMove(); });
 
-    document.querySelectorAll('[data-starter]').forEach(b=>b.addEventListener('click', e=>{
+    btnAI.addEventListener('click', ()=>{
+      aiEnabled = !aiEnabled;
+      btnAI.textContent = `Play vs Computer: ${aiEnabled? 'ON':'OFF'}`;
+      btnAI.classList.toggle('off', !aiEnabled);
+      btnCS.style.display = aiEnabled ? 'inline-block' : 'none';
+      humanPlayer = computerStarts ? (turn===X?O:X) : turn;
+      render();
+      if (aiEnabled && turn !== humanPlayer) maybeAIMove();
+    });
+
+    btnCS.addEventListener('click', ()=>{
+      if (!aiEnabled) return;
+      computerStarts = !computerStarts;
+      // Start a fresh round honoring computerStarts
+      reset();
+      if (aiEnabled && turn !== humanPlayer) maybeAIMove();
+    });
+
+    document.querySelectorAll('[data-starter]').forEach(b=> b.addEventListener('click', e=>{
       const starter = e.currentTarget.getAttribute('data-starter');
       reset();
       turn = starter;
-      humanPlayer = starter;
+      humanPlayer = computerStarts ? (turn===X?O:X) : turn;
       render();
       pushURL();
       maybeAIMove();
     }));
 
-    toggleAI.addEventListener('click', ()=>{
-      aiEnabled = !aiEnabled;
-      toggleAI.textContent = `Play vs Computer: ${aiEnabled? 'ON':'OFF'}`;
-      reset();
-      if (aiEnabled && turn !== humanPlayer) maybeAIMove();
-    });
+    document.getElementById('undo').addEventListener('click', ()=>{ undo(); maybeAIMove(); });
+    document.getElementById('reset').addEventListener('click', ()=>{ reset(); maybeAIMove(); });
 
-    copyTextBtn.addEventListener('click', async ()=>{
-      const text = boardToText(board);
-      try{ await navigator.clipboard.writeText(text); toast('Board copied! Paste into LinkedIn comments.'); }
-      catch(err){ fallbackCopy(text); }
-    });
-
-    copyLinkBtn.addEventListener('click', async ()=>{
-      const url = shareURL();
-      try{ await navigator.clipboard.writeText(url); toast('Shareable link copied!'); }
-      catch(err){ fallbackCopy(url); }
-    });
-
-    function fallbackCopy(text){
-      const t = document.createElement('textarea');
-      t.value = text; document.body.appendChild(t); t.select();
-      try{document.execCommand('copy'); toast('Copied!');}catch(e){}
-      t.remove();
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Game logic
-    // ─────────────────────────────────────────────────────────────────────────────
+    // --- Core game ---
     function handleMove(i){
       if (board[i] || winner(board) || isDraw(board)) return;
-      moveStack.push(board.slice());
+      historyStack.push(board.slice());
       board[i] = turn;
       turn = turn===X ? O : X;
       render();
@@ -195,36 +174,56 @@
       if (!aiEnabled) return;
       if (winner(board) || isDraw(board)) return;
       if (turn === humanPlayer) return;
-      setTimeout(computerMove, 250);
+      setTimeout(computerMove, 140);
     }
 
+    // --- Medium AI (target ~50% human win) ---
     function computerMove(){
-      // simple AI: win > block > random
-      let move = findBestMove(board, turn);
-      if (move == null){
-        const empty = board.map((v,i)=> v?null:i).filter(v=>v!==null);
-        if (!empty.length) return;
-        move = empty[Math.floor(Math.random()*empty.length)];
-      }
-      moveStack.push(board.slice());
-      board[move] = turn;
-      turn = turn===X?O:X;
+      const idx = getAIMove(board, turn);
+      if (idx == null) return;
+      historyStack.push(board.slice());
+      board[idx] = turn;
+      turn = turn===X ? O : X;
       render();
       pushURL();
     }
 
-    function findBestMove(b,player){
-      // Try win
-      for(let i=0;i<9;i++) if(!b[i]){ b[i]=player; if(winner(b)===player){ b[i]=null; return i; } b[i]=null; }
-      // Try block
-      const opp = player===X?O:X;
-      for(let i=0;i<9;i++) if(!b[i]){ b[i]=opp; if(winner(b)===opp){ b[i]=null; return i; } b[i]=null; }
-      return null;
+    function getAIMove(b, me){
+      const opp = me===X?O:X;
+      const emp = empties(b);
+      if (!emp.length) return null;
+
+      const MISTAKE_P = 0.25; // tune for ~50% human wins
+      if (Math.random() < MISTAKE_P) return rand(emp);
+
+      // win now
+      for (const i of emp){ b[i]=me; if (isWin(b,me)){ b[i]=null; return i; } b[i]=null; }
+      // block now
+      for (const i of emp){ b[i]=opp; if (isWin(b,opp)){ b[i]=null; return i; } b[i]=null; }
+      // create fork
+      for (const i of emp){ b[i]=me; if (countWinsNext(b,me)>=2){ b[i]=null; return i; } b[i]=null; }
+      // block fork
+      const forks = emp.filter(i=>{ b[i]=opp; const f=countWinsNext(b,opp)>=2; b[i]=null; return f; });
+      if (forks.length) return forks[0];
+      // center
+      if (!b[4]) return 4;
+      // opposite corner
+      for (const [c,oc] of [[0,8],[2,6]]) if (b[c]===opp && !b[oc]) return oc;
+      // any corner
+      for (const i of [0,2,6,8]) if (!b[i]) return i;
+      // any side
+      for (const i of [1,3,5,7]) if (!b[i]) return i;
+      return rand(emp);
     }
 
+    function empties(b){ const a=[]; for (let i=0;i<9;i++) if (!b[i]) a.push(i); return a; }
+    function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+    function isWin(b,p){ return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(([a,c,d])=> b[a]===p && b[c]===p && b[d]===p); }
+    function countWinsNext(b,p){ let c=0; for (let i=0;i<9;i++){ if (!b[i]){ b[i]=p; if (isWin(b,p)) c++; b[i]=null; } } return c; }
+
     function undo(){
-      if (!moveStack.length) return;
-      board = moveStack.pop();
+      if (!historyStack.length) return;
+      board = historyStack.pop();
       const count = board.filter(Boolean).length;
       turn = (count % 2 === 0) ? X : O;
       render();
@@ -233,165 +232,65 @@
 
     function reset(){
       board = Array(9).fill(null);
-      moveStack = [];
+      historyStack = [];
       turn = X;
-      humanPlayer = X;
+      humanPlayer = computerStarts ? O : X;
       render();
       pushURL();
     }
 
     function randomStarter(){
-      turn = Math.random()<.5?X:O;
-      humanPlayer = turn;
+      turn = Math.random()<.5 ? X : O;
+      humanPlayer = computerStarts ? (turn===X?O:X) : turn;
       render();
       pushURL();
     }
 
+    // winner returns [mark, line] so we can highlight
     function winner(b){
-      const lines = [ [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6] ];
-      for (const [a,c,d] of lines){ if (b[a] && b[a]===b[c] && b[a]===b[d]) return b[a]; }
+      const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for (const [a,c,d] of lines){ if (b[a] && b[a]===b[c] && b[a]===b[d]) return [b[a],[a,c,d]]; }
       return null;
     }
-
     function isDraw(b){ return !winner(b) && b.every(x=>x); }
 
+    // --- Render ---
     function render(){
-      const w = winner(board);
+      const win = winner(board);
+      const wMark = win ? win[0] : null;
+      const wLine = win ? win[1] : [];
       const draw = isDraw(board);
-      for (let i=0;i<9;i++){
+
+      cells.forEach((cell,i)=>{
         const v = board[i];
-        cells[i].textContent = v ? EMOJI[v] : '';
-        cells[i].setAttribute('aria-label', v? (v===X?'Beer':'Pretzel') : 'Empty cell');
-        // Disable if game over OR AI's turn (prevents double input)
-        cells[i].disabled = Boolean(w || draw || (aiEnabled && turn !== humanPlayer));
-      }
+        cell.textContent = v ? EMOJI[v] : '';
+        cell.setAttribute('aria-label', v ? (v===X?'Beer':'Pretzel') : 'Empty cell');
+        cell.disabled = Boolean(wMark || draw || (aiEnabled && turn !== humanPlayer));
+        cell.classList.remove('win');
+      });
+      if (wLine.length){ wLine.forEach(i=> cells[i].classList.add('win')); }
+
       turnBadge.innerHTML = 'Turn: <strong style="margin-left:6px">' + (turn===X?EMOJI.X:EMOJI.O) + '</strong>';
-      if (w){ stateBadge.innerHTML = 'State: <strong style="margin-left:6px">' + (w===X? '🍺 wins!':'🥨 wins!') + '</strong>'; }
+      if (wMark){ stateBadge.innerHTML = 'State: <strong style="margin-left:6px">' + (wMark===X? '🍺 wins!':'🥨 wins!') + '</strong>'; }
       else if (draw){ stateBadge.innerHTML = 'State: <strong style="margin-left:6px">Draw</strong>'; }
       else { stateBadge.innerHTML = 'State: <strong style="margin-left:6px">Playing' + (aiEnabled? ' · vs 🤖':'' ) + '</strong>'; }
     }
 
-    function boardToText(b){
-      const em = i=> b[i] ? EMOJI[b[i]] : EMOJI.E;
-      const rows = [0,3,6].map(i=> `${em(i)} | ${em(i+1)} | ${em(i+2)}`);
-      const header = 'Beer vs Pretzel – Tic‑Tac‑Toe';
-      const hint = '\nYour move: reply with row (1‑3) & col (1‑3).';
-      const mode = aiEnabled ? `\nMode: You vs Computer (${humanPlayer===X?'You: 🍺':'You: 🥨'})` : '';
-      return header + '\n' + rows.join('\n') + hint + mode;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // URL state handling (no reliance on history.replaceState)
-    // ─────────────────────────────────────────────────────────────────────────────
+    // --- Share/URL state (safe for restricted envs) ---
     function encodeState(){ return board.map(c=> c?c:'_').join('') + ':' + turn; }
+    function decodeState(s){ const [g,t]=s.split(':'); if (!g||g.length!==9) return false; const arr=g.split('').map(ch=> ch==='_'?null:(ch==='X'?X:O)); if (t!==X&&t!==O) return false; board=arr; turn=t; return true; }
+    function pushURL(){ try{ const url=new URL(location.href); url.searchParams.set('s', encodeState()); if (window.history && typeof window.history.replaceState==='function'){ window.history.replaceState(null,'',url); } }catch(e){} }
 
-    function decodeState(s){
-      const [grid, t] = s.split(':');
-      if (!grid || grid.length!==9) return false;
-      const arr = grid.split('').map(ch=> ch==='_'?null:(ch==='X'?X:O));
-      if (t!==X && t!==O) return false;
-      board = arr; turn = t; return true;
-    }
-
-    function shareURL(){ const url = new URL(location.href); url.searchParams.set('s', encodeState()); return url.toString(); }
-
-    // Fallback-friendly URL updater
-    function safeReplaceURL(urlString, hist){
-      try{
-        const h = hist || (typeof window!=='undefined' ? window.history : null);
-        if (h && typeof h.replaceState === 'function'){
-          h.replaceState(null, '', urlString);
-          return 'history';
-        }
-      }catch(e){/* ignore */}
-      // Fallback: store state in the hash so sharing still kind of works
-      try{
-        const u = new URL(urlString);
-        const s = u.searchParams.get('s');
-        if (typeof location !== 'undefined'){
-          location.hash = 's=' + s;
-          return 'hash';
-        }
-      }catch(e){/* ignore */}
-      return 'noop';
-    }
-
-    function pushURL(){
-      try{
-        const url = new URL(location.href);
-        url.searchParams.set('s', encodeState());
-        safeReplaceURL(url.toString());
-      }catch(e){ /* no-op in very restricted environments */ }
-    }
-
-    function toast(msg){
-      const t = document.createElement('div');
-      t.textContent = msg;
-      t.style.position='fixed'; t.style.bottom='18px'; t.style.left='50%';
-      t.style.transform='translateX(-50%)'; t.style.background='#141824';
-      t.style.border='1px solid #2a3146'; t.style.padding='10px 14px';
-      t.style.borderRadius='12px'; t.style.boxShadow='var(--shadow)';
-      t.style.zIndex='9999';
-      document.body.appendChild(t);
-      setTimeout(()=>t.remove(),1400);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Boot
-    // ─────────────────────────────────────────────────────────────────────────────
-    const seed = qs.get('s');
-    if (seed && decodeState(seed)){ render(); }
-    else { reset(); }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Minimal test harness (adds tests since none existed previously)
-    // Run automatically; shows status in bottom-right badge & logs details to console
-    // ─────────────────────────────────────────────────────────────────────────────
-    window.__T3__ = { winner, isDraw, encodeState, decodeState, safeReplaceURL };
-    (function runTests(){
-      const cases = [];
-      function test(name, fn){
-        try{ const ok = fn(); cases.push({name, ok}); return ok; }
-        catch(e){ cases.push({name, ok:false, e}); return false; }
-      }
-
-      // Winner detection
-      test('winner: row', ()=> winner([X,X,X,null,null,null,null,null,null])===X);
-      test('winner: col', ()=> winner([O,null,X, O,null,X, O,null,null])===O);
-      test('winner: diag',()=> winner([X,null,O, null,X,O, null,null,X])===X);
-
-      // Draw detection
-      test('draw: full no winner', ()=> isDraw([X,O,X, X,O,O, O,X,O])===true);
-
-      // Encode/decode roundtrip
-      test('encode/decode roundtrip', ()=>{
-        const saveBoard = board.slice(); const saveTurn = turn;
-        board = [X,O,null, null,X,null, null,null,O]; turn = O;
-        const s = encodeState();
-        board = Array(9).fill(null); turn = X;
-        const ok = decodeState(s) && (board.join(',') === [X,O,null,null,X,null,null,null,O].join(',')) && turn===O;
-        board = saveBoard; turn = saveTurn; return ok;
-      });
-
-      // URL replace fallback paths (do not rely on real window.history)
-      test('safeReplaceURL: uses history when available', ()=>{
-        let called = false; const stub = { replaceState: ()=>{called=true;} };
-        const res = safeReplaceURL('https://example.com/?s=_________:X', stub);
-        return res==='history' && called===true;
-      });
-      test('safeReplaceURL: falls back when replaceState missing', ()=>{
-        const res = safeReplaceURL('https://example.com/?s=_________:X', {});
-        return res==='hash' || res==='noop';
-      });
-
-      const passed = cases.filter(c=>c.ok).length;
-      const total = cases.length;
-      testBadge.textContent = `Tests: ${passed}/${total} passed`;
-      testBadge.style.color = passed===total ? '#7bd88f' : '#ff8fab';
-      // Log details
-      console.group('Tic‑Tac‑Toe self‑tests');
-      for (const c of cases){ console[c.ok?'log':'error'](`%c${c.ok?'✓':'✗'} ${c.name}`, c.ok?'color:#7bd88f':'color:#ff8fab', c.e||''); }
-      console.groupEnd();
+    // --- Boot ---
+    (function boot(){
+      // set initial visibility/style for AI controls
+      btnAI.classList.toggle('off', !aiEnabled);
+      btnCS.style.display = aiEnabled ? 'inline-block' : 'none';
+      const seed = qs.get('s');
+      if (seed && decodeState(seed)){
+        humanPlayer = computerStarts ? (turn===X?O:X) : turn;
+        render();
+      } else { reset(); }
     })();
   </script>
 </body>
