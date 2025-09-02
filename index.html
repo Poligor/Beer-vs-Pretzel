@@ -14,9 +14,9 @@
 
     /* Topbar */
     .topbar{width:100%;text-align:center;padding:8px 8px;border-bottom:1px solid #232739}
-    .topbar .logo{display:inline-grid;place-items:center;width:64px;height:64px;margin-bottom:1px;border-radius:14px;font-size:64px}
+    .topbar .logo{display:inline-grid;place-items:center;width:84px;height:84px;margin-bottom:1px;border-radius:14px;font-size:42px}
     .topbar h1{font-size:24px;margin:8px 0 0;font-weight:700;color:var(--text)}
-    @media (max-width:600px){ .topbar h1{font-size:20px} .topbar .logo{font-size:24px;} }
+    @media (max-width:600px){ .topbar h1{font-size:20px} .topbar .logo{width:120px;height:120px;font-size:64px;margin-bottom:4px} }
 
     /* Buttons */
     button,.btn{appearance:none;border:none;background:#1d2331;border:1px solid #2a3146;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;letter-spacing:.2px;transition:transform .06s ease,opacity .2s ease}
@@ -73,7 +73,6 @@
         <span style="flex:1"></span>
       </div>
 
-      <!-- Static 3×3 cells so preview always renders; JS will control them -->
       <div class="grid" role="grid" aria-label="3 by 3 tic‑tac‑toe grid">
         <button class="cell" role="gridcell" aria-label="Empty cell"></button>
         <button class="cell" role="gridcell" aria-label="Empty cell"></button>
@@ -104,196 +103,175 @@
   </div>
 
   <script>
-    // --- Game constants/state ---
-    const X = 'X', O = 'O';
-    const EMOJI = { X: '🍺', O: '🥨' };
-    const qs = new URLSearchParams(location.search);
+    const X='X', O='O';
+    const EMOJI={X:'🍺', O:'🥨'};
+    const qs=new URLSearchParams(location.search);
 
-    let board = Array(9).fill(null);
-    let turn = X;
-    let historyStack = [];
-    let aiEnabled = true;         // default: ON
-    let computerStarts = false;   // default: OFF
-    let humanPlayer = X;          // updated when toggles change
+    let board=Array(9).fill(null);
+    let turn=X;
+    let historyStack=[];
+    let aiEnabled=true;
+    let humanPlayer=X;
 
-    // --- Elements ---
-    const grid = document.querySelector('.grid');
-    let cells = Array.from(grid.querySelectorAll('.cell'));
-    const turnBadge = document.getElementById('turnBadge');
-    const stateBadge = document.getElementById('stateBadge');
-    const btnNew = document.getElementById('newGame');
-    const btnAI = document.getElementById('toggleAI');
-    const btnCS = document.getElementById('computerStarts');
+    const grid=document.querySelector('.grid');
+    let cells=Array.from(grid.querySelectorAll('.cell'));
+    const turnBadge=document.getElementById('turnBadge');
+    const stateBadge=document.getElementById('stateBadge');
+    const btnNew=document.getElementById('newGame');
+    const btnAI=document.getElementById('toggleAI');
+    const btnCS=document.getElementById('computerStarts');
 
-    // hook up cell clicks
-    cells.forEach((btn,i)=> btn.addEventListener('click', ()=>handleMove(i)));
+    cells.forEach((btn,i)=> btn.addEventListener('click',()=>handleMove(i)));
 
-    // --- Controls ---
-    btnNew.addEventListener('click', ()=>{ reset(); randomStarter(); maybeAIMove(); });
+    btnNew.addEventListener('click',()=>{ // start a fresh round with HUMAN first by default
+      reset();
+    });
 
-    btnAI.addEventListener('click', ()=>{
-      aiEnabled = !aiEnabled;
-      btnAI.textContent = `Play vs Computer: ${aiEnabled? 'ON':'OFF'}`;
-      btnAI.classList.toggle('off', !aiEnabled);
-      btnCS.style.display = aiEnabled ? 'inline-block' : 'none';
-      humanPlayer = computerStarts ? (turn===X?O:X) : turn;
+    btnAI.addEventListener('click',()=>{
+      aiEnabled=!aiEnabled;
+      btnAI.textContent=`Play vs Computer: ${aiEnabled?'ON':'OFF'}`;
+      btnAI.classList.toggle('off',!aiEnabled);
+      btnCS.style.display=aiEnabled?'inline-block':'none';
+      humanPlayer=turn;
       render();
-      if (aiEnabled && turn !== humanPlayer) maybeAIMove();
+      if(aiEnabled&&turn!==humanPlayer)maybeAIMove();
     });
 
-    btnCS.addEventListener('click', ()=>{
-      if (!aiEnabled) return;
-      computerStarts = !computerStarts;
-      // Start a fresh round honoring computerStarts
+    btnCS.addEventListener('click',()=>{
+      if(!aiEnabled)return;
       reset();
-      if (aiEnabled && turn !== humanPlayer) maybeAIMove();
+      humanPlayer=O; // user is O, computer is X
+      turn=X;
+      render();
+      computerMove();
     });
 
-    document.querySelectorAll('[data-starter]').forEach(b=> b.addEventListener('click', e=>{
-      const starter = e.currentTarget.getAttribute('data-starter');
+    document.querySelectorAll('[data-starter]').forEach(b=> b.addEventListener('click',e=>{
+      const starter=e.currentTarget.getAttribute('data-starter');
       reset();
-      turn = starter;
-      humanPlayer = computerStarts ? (turn===X?O:X) : turn;
+      turn=starter;
+      humanPlayer=turn;
       render();
       pushURL();
       maybeAIMove();
     }));
 
-    document.getElementById('undo').addEventListener('click', ()=>{ undo(); maybeAIMove(); });
-    document.getElementById('reset').addEventListener('click', ()=>{ reset(); maybeAIMove(); });
+    document.getElementById('undo').addEventListener('click',()=>{undo();maybeAIMove();});
+    document.getElementById('reset').addEventListener('click',()=>{reset();maybeAIMove();});
 
-    // --- Core game ---
     function handleMove(i){
-      if (board[i] || winner(board) || isDraw(board)) return;
+      if(board[i]||winner(board)||isDraw(board))return;
       historyStack.push(board.slice());
-      board[i] = turn;
-      turn = turn===X ? O : X;
+      board[i]=turn;
+      turn=turn===X?O:X;
       render();
       pushURL();
       maybeAIMove();
     }
 
     function maybeAIMove(){
-      if (!aiEnabled) return;
-      if (winner(board) || isDraw(board)) return;
-      if (turn === humanPlayer) return;
-      setTimeout(computerMove, 140);
+      if(!aiEnabled)return;
+      if(winner(board)||isDraw(board))return;
+      if(turn===humanPlayer)return;
+      setTimeout(computerMove,140);
     }
 
-    // --- Medium AI (target ~50% human win) ---
     function computerMove(){
-      const idx = getAIMove(board, turn);
-      if (idx == null) return;
+      const idx=getAIMove(board,turn);
+      if(idx==null)return;
       historyStack.push(board.slice());
-      board[idx] = turn;
-      turn = turn===X ? O : X;
+      board[idx]=turn;
+      turn=turn===X?O:X;
       render();
       pushURL();
     }
 
-    function getAIMove(b, me){
-      const opp = me===X?O:X;
-      const emp = empties(b);
-      if (!emp.length) return null;
-
-      const MISTAKE_P = 0.25; // tune for ~50% human wins
-      if (Math.random() < MISTAKE_P) return rand(emp);
-
-      // win now
-      for (const i of emp){ b[i]=me; if (isWin(b,me)){ b[i]=null; return i; } b[i]=null; }
-      // block now
-      for (const i of emp){ b[i]=opp; if (isWin(b,opp)){ b[i]=null; return i; } b[i]=null; }
-      // create fork
-      for (const i of emp){ b[i]=me; if (countWinsNext(b,me)>=2){ b[i]=null; return i; } b[i]=null; }
-      // block fork
-      const forks = emp.filter(i=>{ b[i]=opp; const f=countWinsNext(b,opp)>=2; b[i]=null; return f; });
-      if (forks.length) return forks[0];
-      // center
-      if (!b[4]) return 4;
-      // opposite corner
-      for (const [c,oc] of [[0,8],[2,6]]) if (b[c]===opp && !b[oc]) return oc;
-      // any corner
-      for (const i of [0,2,6,8]) if (!b[i]) return i;
-      // any side
-      for (const i of [1,3,5,7]) if (!b[i]) return i;
+    function getAIMove(b,me){
+      const opp=me===X?O:X;
+      const emp=empties(b);
+      if(!emp.length)return null;
+      const MISTAKE_P=0.25;
+      if(Math.random()<MISTAKE_P)return rand(emp);
+      for(const i of emp){b[i]=me;if(isWin(b,me)){b[i]=null;return i;}b[i]=null;}
+      for(const i of emp){b[i]=opp;if(isWin(b,opp)){b[i]=null;return i;}b[i]=null;}
+      for(const i of emp){b[i]=me;if(countWinsNext(b,me)>=2){b[i]=null;return i;}b[i]=null;}
+      const forks=emp.filter(i=>{b[i]=opp;const f=countWinsNext(b,opp)>=2;b[i]=null;return f;});
+      if(forks.length)return forks[0];
+      if(!b[4])return 4;
+      for(const [c,oc] of [[0,8],[2,6]])if(b[c]===opp&&!b[oc])return oc;
+      for(const i of [0,2,6,8])if(!b[i])return i;
+      for(const i of [1,3,5,7])if(!b[i])return i;
       return rand(emp);
     }
 
-    function empties(b){ const a=[]; for (let i=0;i<9;i++) if (!b[i]) a.push(i); return a; }
-    function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
-    function isWin(b,p){ return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(([a,c,d])=> b[a]===p && b[c]===p && b[d]===p); }
-    function countWinsNext(b,p){ let c=0; for (let i=0;i<9;i++){ if (!b[i]){ b[i]=p; if (isWin(b,p)) c++; b[i]=null; } } return c; }
+    function empties(b){const a=[];for(let i=0;i<9;i++)if(!b[i])a.push(i);return a;}
+    function rand(a){return a[Math.floor(Math.random()*a.length)];}
+    function isWin(b,p){return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(([a,c,d])=> b[a]===p&&b[c]===p&&b[d]===p);}
+    function countWinsNext(b,p){let c=0;for(let i=0;i<9;i++){if(!b[i]){b[i]=p;if(isWin(b,p))c++;b[i]=null;}}return c;}
 
     function undo(){
-      if (!historyStack.length) return;
-      board = historyStack.pop();
-      const count = board.filter(Boolean).length;
-      turn = (count % 2 === 0) ? X : O;
+      if(!historyStack.length)return;
+      board=historyStack.pop();
+      const count=board.filter(Boolean).length;
+      turn=(count%2===0)?X:O;
       render();
       pushURL();
     }
 
     function reset(){
-      board = Array(9).fill(null);
-      historyStack = [];
-      turn = X;
-      humanPlayer = computerStarts ? O : X;
+      board=Array(9).fill(null);
+      historyStack=[];
+      turn=X;
+      humanPlayer=X;
       render();
       pushURL();
     }
 
     function randomStarter(){
-      turn = Math.random()<.5 ? X : O;
-      humanPlayer = computerStarts ? (turn===X?O:X) : turn;
+      turn=Math.random()<.5?X:O;
+      humanPlayer=turn;
       render();
       pushURL();
     }
 
-    // winner returns [mark, line] so we can highlight
     function winner(b){
-      const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-      for (const [a,c,d] of lines){ if (b[a] && b[a]===b[c] && b[a]===b[d]) return [b[a],[a,c,d]]; }
+      const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for(const [a,c,d] of lines){if(b[a]&&b[a]===b[c]&&b[a]===b[d])return[b[a],[a,c,d]];}
       return null;
     }
-    function isDraw(b){ return !winner(b) && b.every(x=>x); }
+    function isDraw(b){return!winner(b)&&b.every(x=>x);}
 
-    // --- Render ---
     function render(){
-      const win = winner(board);
-      const wMark = win ? win[0] : null;
-      const wLine = win ? win[1] : [];
-      const draw = isDraw(board);
-
+      const win=winner(board);
+      const wMark=win?win[0]:null;
+      const wLine=win?win[1]:[];
+      const draw=isDraw(board);
       cells.forEach((cell,i)=>{
-        const v = board[i];
-        cell.textContent = v ? EMOJI[v] : '';
-        cell.setAttribute('aria-label', v ? (v===X?'Beer':'Pretzel') : 'Empty cell');
-        cell.disabled = Boolean(wMark || draw || (aiEnabled && turn !== humanPlayer));
+        const v=board[i];
+        cell.textContent=v?EMOJI[v]:'';
+        cell.setAttribute('aria-label',v?(v===X?'Beer':'Pretzel'):'Empty cell');
+        cell.disabled=Boolean(wMark||draw||(aiEnabled&&turn!==humanPlayer));
         cell.classList.remove('win');
       });
-      if (wLine.length){ wLine.forEach(i=> cells[i].classList.add('win')); }
+      if(wLine.length){wLine.forEach(i=>cells[i].classList.add('win'));}
+      turnBadge.innerHTML='Turn: <strong style="margin-left:6px">'+(turn===X?EMOJI.X:EMOJI.O)+'</strong>';
+      if(wMark){stateBadge.innerHTML='State: <strong style="margin-left:6px">'+(wMark===X?'🍺 wins!':'🥨 wins!')+'</strong>';}else if(draw){stateBadge.innerHTML='State: <strong style="margin-left:6px">Draw</strong>'; }else{stateBadge.innerHTML='State: <strong style="margin-left:6px">Playing'+(aiEnabled?' · vs 🤖':'')+'</strong>';}}
 
-      turnBadge.innerHTML = 'Turn: <strong style="margin-left:6px">' + (turn===X?EMOJI.X:EMOJI.O) + '</strong>';
-      if (wMark){ stateBadge.innerHTML = 'State: <strong style="margin-left:6px">' + (wMark===X? '🍺 wins!':'🥨 wins!') + '</strong>'; }
-      else if (draw){ stateBadge.innerHTML = 'State: <strong style="margin-left:6px">Draw</strong>'; }
-      else { stateBadge.innerHTML = 'State: <strong style="margin-left:6px">Playing' + (aiEnabled? ' · vs 🤖':'' ) + '</strong>'; }
-    }
+    function encodeState(){return board.map(c=>c?c:'_').join('')+':'+turn;}
+    function decodeState(s){const[g,t]=s.split(':');if(!g||g.length!==9)return false;const arr=g.split('').map(ch=>ch==='_'?null:(ch==='X'?X:O));if(t!==X&&t!==O)return false;board=arr;turn=t;return true;}
+    function pushURL(){try{const url=new URL(location.href);url.searchParams.set('s',encodeState());if(window.history&&typeof window.history.replaceState==='function'){window.history.replaceState(null,'',url);}}catch(e){}}
 
-    // --- Share/URL state (safe for restricted envs) ---
-    function encodeState(){ return board.map(c=> c?c:'_').join('') + ':' + turn; }
-    function decodeState(s){ const [g,t]=s.split(':'); if (!g||g.length!==9) return false; const arr=g.split('').map(ch=> ch==='_'?null:(ch==='X'?X:O)); if (t!==X&&t!==O) return false; board=arr; turn=t; return true; }
-    function pushURL(){ try{ const url=new URL(location.href); url.searchParams.set('s', encodeState()); if (window.history && typeof window.history.replaceState==='function'){ window.history.replaceState(null,'',url); } }catch(e){} }
-
-    // --- Boot ---
     (function boot(){
-      // set initial visibility/style for AI controls
-      btnAI.classList.toggle('off', !aiEnabled);
-      btnCS.style.display = aiEnabled ? 'inline-block' : 'none';
-      const seed = qs.get('s');
-      if (seed && decodeState(seed)){
-        humanPlayer = computerStarts ? (turn===X?O:X) : turn;
+      // initial UI state
+      btnAI.classList.toggle('off',!aiEnabled);
+      btnCS.style.display=aiEnabled?'inline-block':'none';
+      const seed=qs.get('s');
+      if(seed&&decodeState(seed)){
+        humanPlayer=turn; // by default, human is the side to move
         render();
-      } else { reset(); }
+      } else {
+        reset();
+      }
     })();
   </script>
 </body>
